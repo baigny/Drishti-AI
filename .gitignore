@@ -10,7 +10,8 @@ backend/__pycache__/
 *.pyc
 
 # Secrets
-.env
 
 # Models
 *.pt
+config.bat
+node_modules
