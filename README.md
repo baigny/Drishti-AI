@@ -34,7 +34,7 @@ The goal is to transform a camera into an intelligent navigation companion.
 graph TD
 
 A[📷 Camera Feed]
---> B[⚛️ React Frontend]
+--> B[▲ Next.js Frontend]
 
 B -->|Frame Stream| C[⚡ FastAPI Backend]
 
@@ -218,7 +218,7 @@ The **Mayura translation model** can also be used to translate English narration
 
 | Component               | Technology                          |
 | ----------------------- | ----------------------------------- |
-| Frontend                | React                               |
+| Frontend                | Next.js 16 (React 19, App Router)   |
 | Backend                 | FastAPI                             |
 | Object Detection        | YOLOv8                              |
 | Depth Estimation        | MiDaS DPT-Small                     |
@@ -254,18 +254,27 @@ Drishti-AI/
 │   └── README.md
 │
 ├── frontend/
-│   ├── public/
-│   │   └── index.html
 │   ├── src/
-│   │   ├── index.js
-│   │   ├── App.jsx
-│   │   ├── App.css
-│   │   └── components/
-│   │       ├── Camera.jsx
-│   │       ├── AlertOverlay.jsx
-│   │       ├── VoiceChat.jsx
-│   │       └── LanguageSelector.jsx
-│   ├── .env                   # REACT_APP_API_URL
+│   │   ├── app/
+│   │   │   ├── layout.tsx       # Root layout + metadata
+│   │   │   ├── page.tsx         # Main app view (was App.jsx)
+│   │   │   ├── globals.css      # Global styles (was App.css)
+│   │   │   └── error.tsx        # App Router error boundary
+│   │   ├── components/
+│   │   │   ├── Camera.tsx
+│   │   │   ├── AlertOverlay.tsx
+│   │   │   ├── VoiceChat.tsx
+│   │   │   └── LanguageSelector.tsx
+│   │   ├── hooks/
+│   │   │   ├── useAudioPlayer.ts
+│   │   │   └── useFrameProcessor.ts
+│   │   └── lib/
+│   │       ├── api.ts           # Backend fetch wrappers
+│   │       ├── env.ts           # NEXT_PUBLIC_API_URL
+│   │       └── types.ts         # Shared TypeScript types
+│   ├── .env.example            # NEXT_PUBLIC_API_URL
+│   ├── next.config.ts
+│   ├── tsconfig.json
 │   ├── package.json
 │   └── .gitignore
 │
@@ -280,10 +289,10 @@ Drishti-AI/
 | `voice.py`             | Generates multilingual speech using **Sarvam TTS (Bulbul v1)** with gTTS fallback.     |
 | `translate.py`         | Translates English text to Indian languages using **Sarvam Mayura** API.               |
 | `chat.py`              | Interfaces with Groq LLaMA 3 for contextual scene conversations.                       |
-| `Camera.jsx`           | Captures browser camera frames and streams them to the backend.                        |
-| `AlertOverlay.jsx`     | Displays detected objects, distances, and navigation cues over the live feed.          |
-| `VoiceChat.jsx`        | Enables conversational interaction via voice or text.                                  |
-| `LanguageSelector.jsx` | Switches narration language dynamically.                                               |
+| `Camera.tsx`           | Captures browser camera frames and streams them to the backend.                        |
+| `AlertOverlay.tsx`     | Displays detected objects, distances, and navigation cues over the live feed.          |
+| `VoiceChat.tsx`        | Enables conversational interaction via voice or text.                                  |
+| `LanguageSelector.tsx` | Switches narration language dynamically.                                               |
 
 ---
 
@@ -308,8 +317,10 @@ cd frontend
 
 npm install
 
-npm start
+npm run dev
 ```
+
+> **Note:** Copy `frontend/.env.example` to `frontend/.env.local` and set `NEXT_PUBLIC_API_URL` to your backend URL (defaults to `http://localhost:7860`).
 
 ---
 
