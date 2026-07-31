@@ -1,4 +1,5 @@
-import type { DepthZoneLabel, LanguageCode } from "./types";
+import { ArrowLeft, ArrowRight, ArrowUp, type LucideIcon } from "lucide-react";
+import type { DangerLevel, DepthZoneLabel, Direction, LanguageCode } from "./types";
 
 // ── Frame processing ──────────────────────────────────────────
 export const FRAME_INTERVAL_MS = 2000;
@@ -42,8 +43,16 @@ export const LANGUAGES: { code: LanguageCode; label: string; native: string }[] 
   { code: "te", label: "Telugu", native: "తె" },
 ];
 
-export const DANGER_ICONS: Record<number, string> = { 3: "🔴", 2: "🟡", 1: "🟢" };
-export const DIR_ARROWS: Record<string, string> = { left: "←", center: "↑", right: "→" };
+export const DANGER_COLOR: Record<DangerLevel, string> = {
+  3: "#ff4444",
+  2: "#ffaa00",
+  1: "#22c55e",
+};
+export const DIR_ICONS: Record<Direction, LucideIcon> = {
+  left: ArrowLeft,
+  center: ArrowUp,
+  right: ArrowRight,
+};
 export const ZONE_COLOR: Record<DepthZoneLabel, string> = {
   near: "#ff4444",
   medium: "#ffaa00",

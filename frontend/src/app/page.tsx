@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Eye, Moon, Package, Play, Siren, Square, SwitchCamera, Users } from "lucide-react";
 import Camera from "@/components/Camera";
 import AlertOverlay from "@/components/AlertOverlay";
 import VoiceChat from "@/components/VoiceChat";
@@ -57,7 +58,7 @@ export default function Home() {
       {/* ── Header ── */}
       <header className="app-header">
         <div className="logo">
-          <span className="logo-eye">👁</span>
+          <Eye className="logo-eye" size={24} />
           <span className="logo-text">
             Drishti <em>AI</em>
           </span>
@@ -91,7 +92,15 @@ export default function Home() {
               onClick={toggleRunning}
               aria-label={isRunning ? "Stop navigation" : "Start navigation"}
             >
-              {isRunning ? "⏹ Stop" : "▶ Start Navigation"}
+              {isRunning ? (
+                <>
+                  <Square size={18} fill="currentColor" /> Stop
+                </>
+              ) : (
+                <>
+                  <Play size={18} fill="currentColor" /> Start Navigation
+                </>
+              )}
             </button>
 
             <button
@@ -102,7 +111,7 @@ export default function Home() {
               title="Flip camera"
               aria-label="Switch camera"
             >
-              🔄
+              <SwitchCamera size={20} />
             </button>
           </div>
 
@@ -110,11 +119,19 @@ export default function Home() {
           {isRunning && (
             <div className="stats-bar">
               <span className={`stat ${highDangerCount > 0 ? "stat-danger" : ""}`}>
-                🚨 {highDangerCount} High Risk
+                <Siren size={12} /> {highDangerCount} High Risk
               </span>
-              <span className="stat">👥 {personCount} People</span>
-              <span className="stat">📦 {detections.length} Objects</span>
-              {isLowLight && <span className="stat stat-warn">🌙 Low Light</span>}
+              <span className="stat">
+                <Users size={12} /> {personCount} People
+              </span>
+              <span className="stat">
+                <Package size={12} /> {detections.length} Objects
+              </span>
+              {isLowLight && (
+                <span className="stat stat-warn">
+                  <Moon size={12} /> Low Light
+                </span>
+              )}
             </div>
           )}
         </section>

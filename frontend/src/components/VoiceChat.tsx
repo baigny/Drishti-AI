@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import { Bot, CircleDot, HelpCircle, Keyboard, Loader2, Mic, MessageCircle, Send } from "lucide-react";
 import { chatQuery } from "@/lib/api";
 import { CHAT_HISTORY_MAX, QUICK_QUESTIONS } from "@/lib/constants";
 import type { ChatTurn, InputMode, VoiceChatProps } from "@/lib/types";
@@ -102,19 +103,21 @@ export default function VoiceChat({
   return (
     <div className="voice-chat">
       <div className="chat-header">
-        <h3 className="panel-title">🗣️ Ask Drishti AI</h3>
+        <h3 className="panel-title">
+          <MessageCircle size={14} /> Ask Drishti AI
+        </h3>
         <div className="mode-toggle">
           <button
             className={`mode-btn ${inputMode === "voice" ? "active" : ""}`}
             onClick={() => setInputMode("voice")}
           >
-            🎤 Voice
+            <Mic size={14} /> Voice
           </button>
           <button
             className={`mode-btn ${inputMode === "text" ? "active" : ""}`}
             onClick={() => setInputMode("text")}
           >
-            ⌨️ Text
+            <Keyboard size={14} /> Text
           </button>
         </div>
       </div>
@@ -147,7 +150,13 @@ export default function VoiceChat({
             disabled={isThinking}
             aria-label={isRecording ? "Release to send" : "Hold to speak"}
           >
-            {isThinking ? "⏳" : isRecording ? "🔴" : "🎤"}
+            {isThinking ? (
+              <Loader2 size={28} className="spin" />
+            ) : isRecording ? (
+              <CircleDot size={28} />
+            ) : (
+              <Mic size={28} />
+            )}
           </button>
           <p className="mic-hint">
             {isThinking
@@ -178,7 +187,7 @@ export default function VoiceChat({
             disabled={isThinking || !textInput.trim()}
             aria-label="Send question"
           >
-            {isThinking ? "⏳" : "➤"}
+            {isThinking ? <Loader2 size={18} className="spin" /> : <Send size={18} />}
           </button>
         </div>
       )}
@@ -188,8 +197,12 @@ export default function VoiceChat({
         <div className="chat-history">
           {history.map((item, i) => (
             <div key={i} className="chat-turn">
-              <div className="chat-q">❓ {item.q}</div>
-              <div className="chat-a">🤖 {item.a}</div>
+              <div className="chat-q">
+                <HelpCircle size={14} /> {item.q}
+              </div>
+              <div className="chat-a">
+                <Bot size={14} /> {item.a}
+              </div>
             </div>
           ))}
         </div>

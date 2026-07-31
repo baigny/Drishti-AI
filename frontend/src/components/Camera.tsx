@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useEffect, useCallback, useState } from "react";
+import { Smartphone, TriangleAlert } from "lucide-react";
 import {
   CAMERA_VIDEO_CONSTRAINTS,
   FRAME_INTERVAL_MS,
@@ -190,7 +191,7 @@ export default function Camera({
       {/* Error message */}
       {camError && (
         <div className="cam-error" role="alert">
-          ⚠️ {camError}
+          <TriangleAlert size={16} /> {camError}
         </div>
       )}
 
@@ -201,14 +202,14 @@ export default function Camera({
           onClick={() => setShowQR((s) => !s)}
           aria-expanded={showQR}
         >
-          📱 {showQR ? "Hide" : "Use Phone Camera"}
+          <Smartphone size={16} /> {showQR ? "Hide" : "Use Phone Camera"}
         </button>
 
         {showQR && (
           <div className="qr-panel">
             {isLocalhost ? (
               <p className="qr-hint" style={{ color: "var(--danger, #e54)" }}>
-                ⚠️ This page is open at &quot;localhost&quot; — your phone
+                <TriangleAlert size={14} /> This page is open at &quot;localhost&quot; — your phone
                 can&apos;t reach that. Open this app on your laptop using
                 your laptop&apos;s network IP (e.g. http://192.168.x.x:3000)
                 instead, then scan again.
