@@ -44,3 +44,8 @@ export interface ChatResponse {
   audio_b64?: string | null;
   error?: string;
 }
+
+export interface Alert {
+  text: string;
+  time: number;
+}
