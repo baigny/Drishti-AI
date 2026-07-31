@@ -1,30 +1,48 @@
-import React from "react";
+"use client";
 
-/**
- * AlertOverlay.jsx
- * Shows current detected objects with direction + danger level
- * Shows recent voice alert history
- */
+import type { Detection, DepthZone, DepthZoneLabel, LanguageCode } from "@/lib/types";
 
-const DANGER_ICONS = { 3: "🔴", 2: "🟡", 1: "🟢" };
-const DIR_ARROWS   = { left: "←", center: "↑", right: "→" };
-const ZONE_COLOR   = { near: "#ff4444", medium: "#ffaa00", far: "#44cc44", unknown: "#888" };
+const DANGER_ICONS: Record<number, string> = { 3: "🔴", 2: "🟡", 1: "🟢" };
+const DIR_ARROWS: Record<string, string> = { left: "←", center: "↑", right: "→" };
+const ZONE_COLOR: Record<DepthZoneLabel, string> = {
+  near: "#ff4444",
+  medium: "#ffaa00",
+  far: "#44cc44",
+  unknown: "#888",
+};
 
-export default function AlertOverlay({ alerts, detections, depthZones, language, isRunning }) {
+export interface Alert {
+  text: string;
+  time: number;
+}
+
+interface AlertOverlayProps {
+  alerts: Alert[];
+  detections: Detection[];
+  depthZones: DepthZone[];
+  language: LanguageCode;
+  isRunning: boolean;
+}
+
+export default function AlertOverlay({
+  alerts,
+  detections,
+  depthZones,
+  language,
+  isRunning,
+}: AlertOverlayProps) {
   if (!isRunning) return null;
 
-  // Build combined detection+depth list
-  const combined = detections.slice(0, 8).map(det => {
-    const zone = depthZones.find(z => z.label === det.label) || {};
+  const combined = detections.slice(0, 8).map((det) => {
+    const zone = depthZones.find((z) => z.label === det.label);
     return {
       ...det,
-      depth_zone: zone.depth_zone || "unknown",
+      depth_zone: zone?.depth_zone ?? ("unknown" as DepthZoneLabel),
     };
   });
 
   return (
     <div className="alert-panel">
-
       {/* ── Object Detection List ── */}
       <div className="detection-list">
         <h3 className="panel-title">📍 Detected Objects</h3>
@@ -37,7 +55,9 @@ export default function AlertOverlay({ alerts, detections, depthZones, language,
               className={`detection-item danger-${det.danger_level}`}
               style={{ borderLeft: `4px solid ${ZONE_COLOR[det.depth_zone]}` }}
             >
-              <span className="det-icon">{DANGER_ICONS[det.danger_level] || "⚪"}</span>
+              <span className="det-icon">
+                {DANGER_ICONS[det.danger_level] || "⚪"}
+              </span>
               <span className="det-label">
                 {det.translations?.[language] || det.label.replace(/_/g, " ")}
               </span>
@@ -48,7 +68,9 @@ export default function AlertOverlay({ alerts, detections, depthZones, language,
               >
                 {det.depth_zone}
               </span>
-              <span className="det-conf">{Math.round(det.confidence * 100)}%</span>
+              <span className="det-conf">
+                {Math.round(det.confidence * 100)}%
+              </span>
             </div>
           ))
         )}
@@ -67,7 +89,6 @@ export default function AlertOverlay({ alerts, detections, depthZones, language,
           ))
         )}
       </div>
-
     </div>
   );
 }

@@ -1,13 +1,27 @@
-import React, { useRef, useEffect, useCallback, useState } from "react";
+"use client";
+
+import { useRef, useEffect, useCallback, useState } from "react";
 
 /**
- * Camera.jsx
+ * Camera.tsx
  * - Works on laptop webcam, Android, iPhone via browser getUserMedia()
  * - QR code link so user can open on phone
  * - Sends frames to parent via onFrame callback
  * - Shows annotated frame overlay from backend
  * - Low-light detection
  */
+
+type CameraMode = "environment" | "user";
+
+interface CameraProps {
+  isRunning: boolean;
+  onFrame: (imageB64: string) => void;
+  frameInterval?: number;
+  cameraMode?: CameraMode;
+  annotatedFrame?: string | null;
+  onLowLight?: (isLowLight: boolean) => void;
+}
+
 export default function Camera({
   isRunning,
   onFrame,
@@ -15,27 +29,36 @@ export default function Camera({
   cameraMode = "environment",
   annotatedFrame,
   onLowLight,
-}) {
-  const videoRef      = useRef(null);
-  const canvasRef     = useRef(null);
-  const streamRef     = useRef(null);
-  const intervalRef   = useRef(null);
-  const [camError, setCamError]   = useState("");
-  const [camReady, setCamReady]   = useState(false);
-  const [showQR, setShowQR]       = useState(false);
+}: CameraProps) {
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [camError, setCamError] = useState("");
+  const [camReady, setCamReady] = useState(false);
+  const [showQR, setShowQR] = useState(false);
+
+  // Populated client-side only after mount — reading window.location.href
+  // directly in the render body would throw during Next.js's SSR pass.
+  const [phoneLink, setPhoneLink] = useState("");
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time read of a browser global unavailable during SSR, not derived from props/state
+    setPhoneLink(window.location.href);
+  }, []);
 
   // ── Start camera stream ────────────────────────────────────
   const startCamera = useCallback(async () => {
     try {
       // Stop existing stream
       if (streamRef.current) {
-        streamRef.current.getTracks().forEach(t => t.stop());
+        streamRef.current.getTracks().forEach((t) => t.stop());
       }
       setCamReady(false);
 
-      const constraints = {
+      const constraints: MediaStreamConstraints = {
         video: {
-          facingMode: cameraMode,       // "environment" = rear cam, "user" = front
+          facingMode: cameraMode, // "environment" = rear cam, "user" = front
           width: { ideal: 640 },
           height: { ideal: 480 },
           frameRate: { ideal: 15 },
@@ -60,32 +83,35 @@ export default function Camera({
       }
     } catch (err) {
       console.error("Camera error:", err);
+      const name = err instanceof DOMException ? err.name : "";
       setCamError(
-        err.name === "NotAllowedError"
+        name === "NotAllowedError"
           ? "Camera permission denied. Please allow camera access."
-          : "Camera not available. Try opening on your phone via the QR code."
+          : "Camera not available. Try opening on your phone via the QR code.",
       );
       setCamReady(false);
     }
   }, [cameraMode]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- startCamera is async; its setState calls run after an await, not synchronously in this effect body
     startCamera();
     return () => {
       if (streamRef.current) {
-        streamRef.current.getTracks().forEach(t => t.stop());
+        streamRef.current.getTracks().forEach((t) => t.stop());
       }
     };
   }, [startCamera]);
 
   // ── Capture frame → base64 → send to parent ───────────────
   const captureFrame = useCallback(() => {
-    const video  = videoRef.current;
+    const video = videoRef.current;
     const canvas = canvasRef.current;
     if (!video || !canvas || !camReady) return;
 
     const ctx = canvas.getContext("2d");
-    canvas.width  = video.videoWidth  || 640;
+    if (!ctx) return;
+    canvas.width = video.videoWidth || 640;
     canvas.height = video.videoHeight || 480;
 
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
@@ -95,10 +121,10 @@ export default function Camera({
     const data = imgData.data;
     let brightness = 0;
     for (let i = 0; i < data.length; i += 4) {
-      brightness += (data[i] * 0.299 + data[i+1] * 0.587 + data[i+2] * 0.114);
+      brightness += data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114;
     }
-    brightness /= (data.length / 4);
-    onLowLight && onLowLight(brightness < 60);
+    brightness /= data.length / 4;
+    onLowLight?.(brightness < 60);
 
     // Low-light enhancement: CLAHE-like boost via canvas
     if (brightness < 60) {
@@ -116,20 +142,21 @@ export default function Camera({
   useEffect(() => {
     if (isRunning && camReady) {
       intervalRef.current = setInterval(captureFrame, frameInterval);
-    } else {
+    } else if (intervalRef.current) {
       clearInterval(intervalRef.current);
     }
-    return () => clearInterval(intervalRef.current);
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
   }, [isRunning, camReady, captureFrame, frameInterval]);
 
   // ── Build QR code link (current page URL) ────────────────
   // IMPORTANT: if you're viewing this on your laptop as "localhost:3000",
-  // window.location.href will literally contain "localhost", which on a
-  // phone resolves to the phone itself — not your laptop. To make the QR
-  // code work, open the app on your laptop using your laptop's network IP
-  // (e.g. http://192.168.1.23:3000) instead of localhost, *then* the QR
-  // code generated here will correctly point your phone at your laptop.
-  const phoneLink = window.location.href;
+  // phoneLink will literally contain "localhost", which on a phone resolves
+  // to the phone itself — not your laptop. To make the QR code work, open
+  // the app on your laptop using your laptop's network IP (e.g.
+  // http://192.168.1.23:3000) instead of localhost, *then* the QR code
+  // generated here will correctly point your phone at your laptop.
   const isLocalhost = /^https?:\/\/(localhost|127\.0\.0\.1)/i.test(phoneLink);
   const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(phoneLink)}`;
 
@@ -147,6 +174,7 @@ export default function Camera({
 
         {/* Annotated frame overlay from backend */}
         {annotatedFrame && isRunning && (
+          // eslint-disable-next-line @next/next/no-img-element -- dynamic base64 frame from backend, unsuited to next/image
           <img
             src={annotatedFrame}
             className="annotated-overlay"
@@ -172,7 +200,7 @@ export default function Camera({
       <div className="qr-section">
         <button
           className="btn-qr"
-          onClick={() => setShowQR(s => !s)}
+          onClick={() => setShowQR((s) => !s)}
           aria-expanded={showQR}
         >
           📱 {showQR ? "Hide" : "Use Phone Camera"}
@@ -182,13 +210,15 @@ export default function Camera({
           <div className="qr-panel">
             {isLocalhost ? (
               <p className="qr-hint" style={{ color: "var(--danger, #e54)" }}>
-                ⚠️ This page is open at "localhost" — your phone can't reach that.
-                Open this app on your laptop using your laptop's network IP
-                (e.g. http://192.168.x.x:3000) instead, then scan again.
+                ⚠️ This page is open at &quot;localhost&quot; — your phone
+                can&apos;t reach that. Open this app on your laptop using
+                your laptop&apos;s network IP (e.g. http://192.168.x.x:3000)
+                instead, then scan again.
               </p>
             ) : (
               <>
                 <p>Scan with any phone — works on Android &amp; iPhone</p>
+                {/* eslint-disable-next-line @next/next/no-img-element -- external, dynamically-generated QR image */}
                 <img src={qrSrc} alt="QR code to open on phone" className="qr-img" />
                 <p className="qr-hint">No app install needed — opens in mobile browser</p>
               </>

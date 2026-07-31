@@ -1,3 +1,4 @@
+export type LanguageCode = "en" | "ta" | "hi" | "ml" | "kn" | "te";
 export type Direction = "left" | "center" | "right";
 export type DangerLevel = 1 | 2 | 3;
 export type DepthZoneLabel = "near" | "medium" | "far" | "unknown";
