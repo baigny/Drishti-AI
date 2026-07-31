@@ -1,20 +1,7 @@
 "use client";
 
-import type { LanguageCode } from "@/lib/types";
-
-const LANGUAGES: { code: LanguageCode; label: string; native: string }[] = [
-  { code: "en", label: "English", native: "EN" },
-  { code: "ta", label: "Tamil", native: "த" },
-  { code: "hi", label: "Hindi", native: "हि" },
-  { code: "ml", label: "Malayalam", native: "മ" },
-  { code: "kn", label: "Kannada", native: "ಕ" },
-  { code: "te", label: "Telugu", native: "తె" },
-];
-
-interface LanguageSelectorProps {
-  value: LanguageCode;
-  onChange: (code: LanguageCode) => void;
-}
+import { LANGUAGES } from "@/lib/constants";
+import type { LanguageSelectorProps } from "@/lib/types";
 
 export default function LanguageSelector({
   value,

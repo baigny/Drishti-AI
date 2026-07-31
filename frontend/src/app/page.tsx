@@ -8,14 +8,9 @@ import LanguageSelector from "@/components/LanguageSelector";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import { useFrameProcessor } from "@/hooks/useFrameProcessor";
 import { healthCheck } from "@/lib/api";
+import { FRAME_INTERVAL_MS } from "@/lib/constants";
 import { API_URL } from "@/lib/env";
-import type { LanguageCode } from "@/lib/types";
-
-// How often to send frames to backend (ms)
-const FRAME_INTERVAL = 2000;
-
-type BackendStatus = "idle" | "ok" | "error";
-type CameraFacing = "environment" | "user";
+import type { BackendStatus, CameraFacing, LanguageCode } from "@/lib/types";
 
 export default function Home() {
   const [language, setLanguage] = useState<LanguageCode>("en");
@@ -83,7 +78,7 @@ export default function Home() {
           <Camera
             isRunning={isRunning}
             onFrame={processFrame}
-            frameInterval={FRAME_INTERVAL}
+            frameInterval={FRAME_INTERVAL_MS}
             cameraMode={cameraMode}
             annotatedFrame={annotatedFrame}
             onLowLight={setIsLowLight}

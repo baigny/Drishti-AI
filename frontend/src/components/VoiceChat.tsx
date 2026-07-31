@@ -2,7 +2,8 @@
 
 import { useState, useRef } from "react";
 import { chatQuery } from "@/lib/api";
-import type { LanguageCode, SceneContext } from "@/lib/types";
+import { CHAT_HISTORY_MAX, QUICK_QUESTIONS } from "@/lib/constants";
+import type { ChatTurn, InputMode, VoiceChatProps } from "@/lib/types";
 
 /**
  * VoiceChat.tsx
@@ -10,31 +11,6 @@ import type { LanguageCode, SceneContext } from "@/lib/types";
  * Uses MediaRecorder to capture audio → sends to /api/chat
  * AI responds in the user's chosen language
  */
-
-interface VoiceChatProps {
-  apiUrl: string;
-  language: LanguageCode;
-  sceneContext: SceneContext;
-  playAudio: (audioB64: string | null | undefined) => void;
-}
-
-interface ChatTurn {
-  q: string;
-  a: string;
-  time: number;
-}
-
-type InputMode = "voice" | "text";
-
-const QUICK_QUESTIONS: Record<LanguageCode, string[]> = {
-  en: ["What's in front of me?", "Is it safe to cross?", "How many people nearby?"],
-  ta: ["என் முன்னால் என்ன இருக்கிறது?", "கடந்து செல்வது பாதுகாப்பானதா?", "அருகில் எத்தனை பேர்?"],
-  hi: ["मेरे सामने क्या है?", "क्या पार करना सुरक्षित है?", "पास में कितने लोग हैं?"],
-  ml: ["എന്റെ മുന്നിൽ എന്തുണ്ട്?", "കടന്നുപോകാൻ സുരക്ഷിതമാണോ?"],
-  kn: ["ನನ್ನ ಮುಂದೆ ಏನಿದೆ?", "ದಾಟುವುದು ಸುರಕ್ಷಿತವೇ?"],
-  te: ["నా ముందు ఏముంది?", "దాటడం సురక్షితమా?"],
-};
-
 export default function VoiceChat({
   apiUrl,
   language,
@@ -51,7 +27,7 @@ export default function VoiceChat({
   const chunksRef = useRef<BlobPart[]>([]);
 
   const addToHistory = (q: string, a: string) => {
-    setHistory((h) => [{ q, a, time: Date.now() }, ...h.slice(0, 5)]);
+    setHistory((h) => [{ q, a, time: Date.now() }, ...h.slice(0, CHAT_HISTORY_MAX - 1)]);
   };
 
   // ── Send audio to backend ──────────────────────────────────
@@ -121,7 +97,7 @@ export default function VoiceChat({
     }
   };
 
-  const quickQs = QUICK_QUESTIONS[language] || QUICK_QUESTIONS.en;
+  const quickQs = QUICK_QUESTIONS[language] ?? QUICK_QUESTIONS.en;
 
   return (
     <div className="voice-chat">

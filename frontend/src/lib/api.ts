@@ -1,6 +1,11 @@
-import type { ChatResponse, ProcessFrameResponse, SceneContext } from "./types";
+import type {
+  ChatQueryInput,
+  ChatResponse,
+  LanguageCode,
+  ProcessFrameResponse,
+} from "./types";
 
-export async function healthCheck(apiUrl: string): Promise<boolean> {
+export const healthCheck = async (apiUrl: string): Promise<boolean> => {
   try {
     const res = await fetch(`${apiUrl}/api/health`);
     if (!res.ok) return false;
@@ -9,13 +14,13 @@ export async function healthCheck(apiUrl: string): Promise<boolean> {
   } catch {
     return false;
   }
-}
+};
 
-export async function processFrame(
+export const processFrame = async (
   apiUrl: string,
   imageB64: string,
-  language: string,
-): Promise<ProcessFrameResponse | null> {
+  language: LanguageCode,
+): Promise<ProcessFrameResponse | null> => {
   try {
     const formData = new FormData();
     formData.append("image_b64", imageB64);
@@ -33,19 +38,12 @@ export async function processFrame(
     console.error("Frame processing error:", err);
     return null;
   }
-}
+};
 
-export interface ChatQueryInput {
-  language: string;
-  sceneContext: SceneContext;
-  audioBlob?: Blob;
-  textQuestion?: string;
-}
-
-export async function chatQuery(
+export const chatQuery = async (
   apiUrl: string,
   input: ChatQueryInput,
-): Promise<ChatResponse | null> {
+): Promise<ChatResponse | null> => {
   try {
     const formData = new FormData();
     if (input.audioBlob) {
@@ -66,4 +64,4 @@ export async function chatQuery(
     console.error("Chat error:", err);
     return null;
   }
-}
+};

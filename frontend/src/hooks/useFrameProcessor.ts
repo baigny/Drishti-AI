@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { processFrame as processFrameApi } from "@/lib/api";
+import { ALERT_EXPIRY_MS, ALERT_QUEUE_MAX, OVERLAY_DISPLAY_MS } from "@/lib/constants";
 import type { Alert, Detection, DepthZone, LanguageCode } from "@/lib/types";
 
-export function useFrameProcessor(
+export const useFrameProcessor = (
   apiUrl: string,
   language: LanguageCode,
   playAudio: (audioB64: string | null | undefined) => void,
-) {
+) => {
   const [detections, setDetections] = useState<Detection[]>([]);
   const [depthZones, setDepthZones] = useState<DepthZone[]>([]);
   const [narration, setNarration] = useState("");
@@ -22,18 +23,18 @@ export function useFrameProcessor(
       const data = await processFrameApi(apiUrl, imageB64, language);
       if (!data?.success) return;
 
-      setDetections(data.detections || []);
-      setDepthZones(data.depth_zones || []);
-      setAnnotatedFrame(data.annotated_frame || null);
+      setDetections(data.detections ?? []);
+      setDepthZones(data.depth_zones ?? []);
+      setAnnotatedFrame(data.annotated_frame ?? null);
 
       // Show the annotated (boxed) frame briefly, then fall back to the
       // live video. Without this, the annotated <img> sits on top of the
-      // <video> for the entire FRAME_INTERVAL, which looks like the camera
-      // is frozen/black and hides the live feed almost all the time.
+      // <video> for the entire FRAME_INTERVAL_MS, which looks like the
+      // camera is frozen/black and hides the live feed almost all the time.
       if (overlayTimeoutRef.current) clearTimeout(overlayTimeoutRef.current);
       overlayTimeoutRef.current = setTimeout(() => {
         setAnnotatedFrame(null);
-      }, 900);
+      }, OVERLAY_DISPLAY_MS);
 
       // Only speak if narration changed
       if (data.narration && data.narration !== lastNarration.current) {
@@ -44,7 +45,7 @@ export function useFrameProcessor(
         // Add to alert queue for visual display
         setAlertQueue((q) => [
           { text: data.narration, time: Date.now() },
-          ...q.slice(0, 4),
+          ...q.slice(0, ALERT_QUEUE_MAX - 1),
         ]);
       }
     },
@@ -61,7 +62,7 @@ export function useFrameProcessor(
   // ── Auto-expire old alerts ────────────────────────────────
   useEffect(() => {
     const timer = setInterval(() => {
-      setAlertQueue((q) => q.filter((a) => Date.now() - a.time < 8000));
+      setAlertQueue((q) => q.filter((a) => Date.now() - a.time < ALERT_EXPIRY_MS));
     }, 1000);
     return () => clearInterval(timer);
   }, []);
@@ -81,4 +82,4 @@ export function useFrameProcessor(
     processFrame,
     reset,
   };
-}
+};

@@ -1,6 +1,6 @@
 import { useCallback, useRef } from "react";
 
-export function useAudioPlayer() {
+export const useAudioPlayer = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // ── Play audio from base64 (safely interrupts any prior clip) ─
@@ -43,4 +43,4 @@ export function useAudioPlayer() {
   }, []);
 
   return { playAudio, stopAudio };
-}
+};

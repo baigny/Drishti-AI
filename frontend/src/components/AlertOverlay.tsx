@@ -1,23 +1,7 @@
 "use client";
 
-import type { Alert, Detection, DepthZone, DepthZoneLabel, LanguageCode } from "@/lib/types";
-
-const DANGER_ICONS: Record<number, string> = { 3: "🔴", 2: "🟡", 1: "🟢" };
-const DIR_ARROWS: Record<string, string> = { left: "←", center: "↑", right: "→" };
-const ZONE_COLOR: Record<DepthZoneLabel, string> = {
-  near: "#ff4444",
-  medium: "#ffaa00",
-  far: "#44cc44",
-  unknown: "#888",
-};
-
-interface AlertOverlayProps {
-  alerts: Alert[];
-  detections: Detection[];
-  depthZones: DepthZone[];
-  language: LanguageCode;
-  isRunning: boolean;
-}
+import { DANGER_ICONS, DIR_ARROWS, ZONE_COLOR } from "@/lib/constants";
+import type { AlertOverlayProps, DepthZoneLabel } from "@/lib/types";
 
 export default function AlertOverlay({
   alerts,

@@ -1,6 +1,17 @@
 "use client";
 
 import { useRef, useEffect, useCallback, useState } from "react";
+import {
+  CAMERA_VIDEO_CONSTRAINTS,
+  FRAME_INTERVAL_MS,
+  JPEG_QUALITY,
+  LOCALHOST_URL_PATTERN,
+  LOW_LIGHT_TARGET_BRIGHTNESS,
+  LOW_LIGHT_THRESHOLD,
+  MAX_BRIGHTNESS_BOOST,
+  QR_CODE_API_URL,
+} from "@/lib/constants";
+import type { CameraProps } from "@/lib/types";
 
 /**
  * Camera.tsx
@@ -10,22 +21,10 @@ import { useRef, useEffect, useCallback, useState } from "react";
  * - Shows annotated frame overlay from backend
  * - Low-light detection
  */
-
-type CameraMode = "environment" | "user";
-
-interface CameraProps {
-  isRunning: boolean;
-  onFrame: (imageB64: string) => void;
-  frameInterval?: number;
-  cameraMode?: CameraMode;
-  annotatedFrame?: string | null;
-  onLowLight?: (isLowLight: boolean) => void;
-}
-
 export default function Camera({
   isRunning,
   onFrame,
-  frameInterval = 2000,
+  frameInterval = FRAME_INTERVAL_MS,
   cameraMode = "environment",
   annotatedFrame,
   onLowLight,
@@ -59,9 +58,7 @@ export default function Camera({
       const constraints: MediaStreamConstraints = {
         video: {
           facingMode: cameraMode, // "environment" = rear cam, "user" = front
-          width: { ideal: 640 },
-          height: { ideal: 480 },
-          frameRate: { ideal: 15 },
+          ...CAMERA_VIDEO_CONSTRAINTS,
         },
         audio: false,
       };
@@ -124,17 +121,18 @@ export default function Camera({
       brightness += data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114;
     }
     brightness /= data.length / 4;
-    onLowLight?.(brightness < 60);
+    const isLowLight = brightness < LOW_LIGHT_THRESHOLD;
+    onLowLight?.(isLowLight);
 
     // Low-light enhancement: CLAHE-like boost via canvas
-    if (brightness < 60) {
-      const scale = Math.min(2.5, 120 / brightness);
+    if (isLowLight) {
+      const scale = Math.min(MAX_BRIGHTNESS_BOOST, LOW_LIGHT_TARGET_BRIGHTNESS / brightness);
       ctx.filter = `brightness(${scale})`;
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
       ctx.filter = "none";
     }
 
-    const imageB64 = canvas.toDataURL("image/jpeg", 0.7);
+    const imageB64 = canvas.toDataURL("image/jpeg", JPEG_QUALITY);
     onFrame(imageB64);
   }, [camReady, onFrame, onLowLight]);
 
@@ -157,8 +155,8 @@ export default function Camera({
   // the app on your laptop using your laptop's network IP (e.g.
   // http://192.168.1.23:3000) instead of localhost, *then* the QR code
   // generated here will correctly point your phone at your laptop.
-  const isLocalhost = /^https?:\/\/(localhost|127\.0\.0\.1)/i.test(phoneLink);
-  const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(phoneLink)}`;
+  const isLocalhost = LOCALHOST_URL_PATTERN.test(phoneLink);
+  const qrSrc = `${QR_CODE_API_URL}${encodeURIComponent(phoneLink)}`;
 
   return (
     <div className="camera-wrapper">

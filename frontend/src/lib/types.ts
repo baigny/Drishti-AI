@@ -2,6 +2,9 @@ export type LanguageCode = "en" | "ta" | "hi" | "ml" | "kn" | "te";
 export type Direction = "left" | "center" | "right";
 export type DangerLevel = 1 | 2 | 3;
 export type DepthZoneLabel = "near" | "medium" | "far" | "unknown";
+export type BackendStatus = "idle" | "ok" | "error";
+export type CameraFacing = "environment" | "user";
+export type InputMode = "voice" | "text";
 
 export interface Detection {
   label: string;
@@ -45,7 +48,51 @@ export interface ChatResponse {
   error?: string;
 }
 
+export interface ChatQueryInput {
+  language: LanguageCode;
+  sceneContext: SceneContext;
+  audioBlob?: Blob;
+  textQuestion?: string;
+}
+
 export interface Alert {
   text: string;
   time: number;
+}
+
+export interface ChatTurn {
+  q: string;
+  a: string;
+  time: number;
+}
+
+// ── Component props ──────────────────────────────────────────
+
+export interface CameraProps {
+  isRunning: boolean;
+  onFrame: (imageB64: string) => void;
+  frameInterval?: number;
+  cameraMode?: CameraFacing;
+  annotatedFrame?: string | null;
+  onLowLight?: (isLowLight: boolean) => void;
+}
+
+export interface AlertOverlayProps {
+  alerts: Alert[];
+  detections: Detection[];
+  depthZones: DepthZone[];
+  language: LanguageCode;
+  isRunning: boolean;
+}
+
+export interface VoiceChatProps {
+  apiUrl: string;
+  language: LanguageCode;
+  sceneContext: SceneContext;
+  playAudio: (audioB64: string | null | undefined) => void;
+}
+
+export interface LanguageSelectorProps {
+  value: LanguageCode;
+  onChange: (code: LanguageCode) => void;
 }
