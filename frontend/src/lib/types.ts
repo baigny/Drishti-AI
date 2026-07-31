@@ -1,51 +1,34 @@
-export type LanguageCode = "en" | "ta" | "hi" | "ml" | "kn" | "te";
-export type Direction = "left" | "center" | "right";
-export type DangerLevel = 1 | 2 | 3;
-export type DepthZoneLabel = "near" | "medium" | "far" | "unknown";
+import type { z } from "zod";
+import type {
+  ChatResponseSchema,
+  DangerLevelSchema,
+  DepthZoneLabelSchema,
+  DepthZoneSchema,
+  DetectionSchema,
+  DirectionSchema,
+  LanguageCodeSchema,
+  ProcessFrameResponseSchema,
+} from "./schemas";
+
+// Types for anything crossing the network boundary are derived from the
+// Zod schemas in ./schemas — one source of truth, validated at runtime
+// where it's parsed (see lib/api.ts) instead of trusted via type-cast.
+export type LanguageCode = z.infer<typeof LanguageCodeSchema>;
+export type Direction = z.infer<typeof DirectionSchema>;
+export type DangerLevel = z.infer<typeof DangerLevelSchema>;
+export type DepthZoneLabel = z.infer<typeof DepthZoneLabelSchema>;
+export type Detection = z.infer<typeof DetectionSchema>;
+export type DepthZone = z.infer<typeof DepthZoneSchema>;
+export type ProcessFrameResponse = z.infer<typeof ProcessFrameResponseSchema>;
+export type ChatResponse = z.infer<typeof ChatResponseSchema>;
+
 export type BackendStatus = "idle" | "ok" | "error";
 export type CameraFacing = "environment" | "user";
 export type InputMode = "voice" | "text";
 
-export interface Detection {
-  label: string;
-  confidence: number;
-  direction: Direction;
-  box: [number, number, number, number];
-  box_ratio: number;
-  danger_level: DangerLevel;
-  translations: Record<string, string>;
-}
-
-export interface DepthZone {
-  label: string;
-  direction: Direction;
-  depth_zone: DepthZoneLabel;
-  avg_depth: number;
-  danger_level: number;
-}
-
 export interface SceneContext {
   detections: Detection[];
   depth_zones: DepthZone[];
-}
-
-export interface ProcessFrameResponse {
-  success: boolean;
-  detections: Detection[];
-  depth_zones: DepthZone[];
-  narration: string;
-  audio_b64: string | null;
-  annotated_frame: string | null;
-  timestamp: number;
-  error?: string;
-}
-
-export interface ChatResponse {
-  success: boolean;
-  question?: string;
-  answer?: string;
-  audio_b64?: string | null;
-  error?: string;
 }
 
 export interface ChatQueryInput {

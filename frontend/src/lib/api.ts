@@ -1,9 +1,5 @@
-import type {
-  ChatQueryInput,
-  ChatResponse,
-  LanguageCode,
-  ProcessFrameResponse,
-} from "./types";
+import { ChatResponseSchema, ProcessFrameResponseSchema } from "./schemas";
+import type { ChatQueryInput, ChatResponse, LanguageCode, ProcessFrameResponse } from "./types";
 
 export const healthCheck = async (apiUrl: string): Promise<boolean> => {
   try {
@@ -33,7 +29,13 @@ export const processFrame = async (
     });
 
     if (!res.ok) return null;
-    return (await res.json()) as ProcessFrameResponse;
+    const json = await res.json();
+    const parsed = ProcessFrameResponseSchema.safeParse(json);
+    if (!parsed.success) {
+      console.error("Invalid process-frame response:", parsed.error);
+      return null;
+    }
+    return parsed.data;
   } catch (err) {
     console.error("Frame processing error:", err);
     return null;
@@ -59,7 +61,13 @@ export const chatQuery = async (
       method: "POST",
       body: formData,
     });
-    return (await res.json()) as ChatResponse;
+    const json = await res.json();
+    const parsed = ChatResponseSchema.safeParse(json);
+    if (!parsed.success) {
+      console.error("Invalid chat response:", parsed.error);
+      return null;
+    }
+    return parsed.data;
   } catch (err) {
     console.error("Chat error:", err);
     return null;
